@@ -1,2 +1,2 @@
-git+https://github.com/<seccboig>/highrise-python-sdk.git
+highrise-bot-sdk==24.1.0
 python-dotenv
