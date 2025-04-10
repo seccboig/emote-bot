@@ -1,7 +1,12 @@
-
 import asyncio
+import os
 from asyncio import Task
 from highrise import BaseBot, HighriseBot, User
+from dotenv import load_dotenv
+
+load_dotenv()
+TOKEN = os.getenv("TOKEN")
+
 
 class Emote:
     def __init__(self, name: str, id: str, duration: float, is_free: bool):
@@ -10,6 +15,8 @@ class Emote:
         self.duration = duration
         self.is_free = is_free
 
+
+# Just a few sample emotes (you can paste full list here as needed)
 emotes: list[Emote] = [
     Emote(name="Rest", id="sit-idle-cute", duration=17.062613, is_free=False),
     Emote(name="Zombie", id="idle_zombie", duration=28.754937, is_free=False),
@@ -233,8 +240,8 @@ emotes: list[Emote] = [
     Emote(name="Wop Dance", id="dance-tiktok11", duration=11, is_free=True),
     Emote(name="Cute Salute", id="emote-cutesalute", duration=3, is_free=True),
     Emote(name="At Attention", id="emote-salute", duration=3, is_free=True),
-    # ... Add full list here if needed (kept short for this demo)
 ]
+
 
 class EmoteBot(BaseBot):
     def __init__(self):
@@ -248,9 +255,9 @@ class EmoteBot(BaseBot):
             task = self.active_tasks.pop(user.username, None)
             if task:
                 task.cancel()
-                await self.highrise.send_whisper(user.id, "Emote stopped.")
+                await self.highrise.send_whisper(user.id, "⛔ Emote stopped.")
             else:
-                await self.highrise.send_whisper(user.id, "You're not emoting.")
+                await self.highrise.send_whisper(user.id, "❌ You're not emoting.")
             return
 
         selected_emote = None
@@ -260,20 +267,20 @@ class EmoteBot(BaseBot):
             if 0 <= index < len(emotes):
                 selected_emote = emotes[index]
         else:
-            for i, emote in enumerate(emotes):
+            for emote in emotes:
                 if emote.name.lower() == msg:
                     selected_emote = emote
                     break
 
         if not selected_emote:
-            await self.highrise.send_whisper(user.id, "Invalid emote name or number.")
+            await self.highrise.send_whisper(user.id, "⚠️ Invalid emote name or number.")
             return
 
         if user.username in self.active_tasks:
             self.active_tasks[user.username].cancel()
 
         index = emotes.index(selected_emote) + 1
-        await self.highrise.send_whisper(user.id, f"Looping emote #{index}: {selected_emote.name}.")
+        await self.highrise.send_whisper(user.id, f"🔁 Looping emote #{index}: {selected_emote.name}")
 
         task = asyncio.create_task(self._loop_emote(user, selected_emote))
         self.active_tasks[user.username] = task
@@ -286,6 +293,7 @@ class EmoteBot(BaseBot):
             except:
                 break
 
+
 if __name__ == "__main__":
     bot = HighriseBot(EmoteBot())
-    bot.run("58f4937b919d391dfe312fe87d44b5864be2894c7bcb8ff5a834bc5e82924b39")
+    bot.run(TOKEN)
